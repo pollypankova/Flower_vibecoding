@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<button id="water-button">Полить цветы</button>
 <div class="flower">
         <div class="f-wrapper">
             <div class="flower__line"></div>
@@ -59,16 +60,101 @@
     let timer = 60;
     const timerElement = document.getElementById('timer');
     const flower = document.querySelector('.flower');
+    const waterButton = document.getElementById('water-button');
 
     function updateTimer() {
         timer--;
+        // Ensure timer does not go below 0
+        if (timer < 0) timer = 0;
         timerElement.textContent = timer;
+
+        // Show water button when water level drops below 20% (12 seconds into the 60-second animation)
+        if (timer === 48) {
+            waterButton.classList.add('visible');
+        }
+
         if (timer > 0) {
             setTimeout(updateTimer, 1000);
         } else {
             flower.classList.add('wilted');
         }
     }
+
+    // Function to create a bee that flies across the screen
+    function createBee() {
+        const bee = document.createElement('div');
+        bee.textContent = '🐝';
+        bee.classList.add('bee');
+        bee.style.left = '50%';
+        bee.style.bottom = '30vmin'; // Start near the glass
+        bee.style.fontSize = '3vmin';
+        bee.style.position = 'absolute';
+        bee.style.zIndex = '20';
+        bee.style.pointerEvents = 'none';
+
+        // Random flight path
+        const flightPaths = ['bee-flight-1', 'bee-flight-2', 'bee-flight-3'];
+        const randomPath = flightPaths[Math.floor(Math.random() * flightPaths.length)];
+        bee.classList.add(randomPath);
+
+        document.body.appendChild(bee);
+
+        // Remove bee after animation
+        setTimeout(() => {
+            bee.remove();
+        }, 3000); // Assuming animation duration is 3s
+    }
+
+    // Function to refill water and change flower colors
+    function refillWaterAndChangeColors() {
+        // Ensure timer does not exceed 60 seconds
+        if (timer > 60) timer = 60;
+        timer = 60;
+        timerElement.textContent = timer;
+
+        // Remove wilted class if present
+        flower.classList.remove('wilted');
+
+        // Reset water level using CSS animation (water level is capped at 100% via CSS)
+        const glass = document.querySelector('.flower__glass');
+        glass.classList.add('refill');
+
+        // Create a bee
+        createBee();
+
+        // Change flower colors to random colors
+        const leaves = document.querySelectorAll('.flower__leaf');
+        leaves.forEach(leaf => {
+            // Generate random HSL color
+            const hue = Math.floor(Math.random() * 360);
+            const saturation = 70 + Math.floor(Math.random() * 30); // 70-100%
+            const lightness = 50 + Math.floor(Math.random() * 20);  // 50-70%
+
+            // Apply color based on leaf type
+            if (leaf.classList.contains('flower__leaf--1')) {
+                leaf.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                leaf.style.backgroundImage = 'none';
+            } else if (leaf.classList.contains('flower__leaf--8')) {
+                // For the special leaf, we'll create a gradient
+                const hue2 = (hue + 30) % 360;
+                leaf.style.backgroundImage = `linear-gradient(to left bottom, hsl(${hue}, ${saturation}%, ${lightness}%), hsl(${hue2}, ${saturation}%, ${lightness - 20}%))`;
+            } else {
+                // For other leaves, create a gradient
+                const hue2 = (hue + 30) % 360;
+                const hue3 = (hue + 60) % 360;
+                leaf.style.backgroundImage = `linear-gradient(to bottom, hsl(${hue}, ${saturation}%, ${lightness}%), hsl(${hue2}, ${saturation}%, ${lightness - 20}%), hsl(${hue3}, ${saturation}%, ${lightness - 30}%) 99%)`;
+            }
+        });
+
+        // After the refill animation completes, remove the class and hide the button
+        setTimeout(() => {
+            glass.classList.remove('refill');
+            waterButton.classList.remove('visible');
+        }, 1000);
+    }
+
+    // Add event listener to the water button
+    waterButton.addEventListener('click', refillWaterAndChangeColors);
 
     updateTimer();
 </script>
